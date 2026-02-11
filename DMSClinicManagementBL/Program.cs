@@ -1,3 +1,8 @@
+using ClinicManagementBLL.Services.Classes;
+using ClinicManagementBLL.Services.Interface;
+using ClinicManagemnetDAL.Data.Contexts;
+using Microsoft.EntityFrameworkCore;
+
 namespace DMSClinicManagementBL
 {
     public class Program
@@ -8,6 +13,11 @@ namespace DMSClinicManagementBL
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddDbContext<ClinicDbContext>(optionsAction: Options =>
+            {
+                Options.UseSqlServer(connectionString: builder.Configuration.GetConnectionString(name: "DefaultConnection"));
+            });
+            builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
             var app = builder.Build();
 
