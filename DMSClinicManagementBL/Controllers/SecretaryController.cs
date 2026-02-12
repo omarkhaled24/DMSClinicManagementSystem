@@ -3,11 +3,24 @@ using ClinicManagementBLL.ViewModels.PatientViewModel;
 using ClinicManagemnetDAL.Data.Contexts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ClinicManagemnetDAL.Models; // هنا موجود Appointment, Patient, Doctor
-using ClinicManagemnetDAL.Data;   // هنا موجود DbContext
+using ClinicManagemnetDAL.Models; 
+using ClinicManagemnetDAL.Data;   
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using ClinicManagemnetDAL.Models.Enums;
 using ClinicManagementBLL.ViewModels.AppointmentViewModels;
+using Azure;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
+using Newtonsoft.Json.Linq;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static System.Collections.Specialized.BitVector32;
+using System.Runtime.Intrinsics.Arm;
+using System;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.ComponentModel.DataAnnotations;
 
 namespace DMSClinicManagementBL.Controllers
 {
@@ -23,9 +36,6 @@ namespace DMSClinicManagementBL.Controllers
             {
                 this.clinicDbContext = clinicDbContext;
             }
-
-
-
             [HttpGet]
             public IActionResult CreateAppointment()
             {
@@ -68,7 +78,7 @@ namespace DMSClinicManagementBL.Controllers
                         Street = model.Street,
                         City = model.City
                     };
-                   clinicDbContext.Add(address);
+                    clinicDbContext.Add(address);
                     clinicDbContext.SaveChanges();
                 }
 
@@ -165,6 +175,7 @@ namespace DMSClinicManagementBL.Controllers
             }
         }
     }
+
 }
 
 
@@ -172,8 +183,191 @@ namespace DMSClinicManagementBL.Controllers
 
 
 
+       
 
-//            // GET: Create Appointment
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //            [HttpGet]
 //            public IActionResult CreateAppointment()
 //            {
@@ -188,337 +382,89 @@ namespace DMSClinicManagementBL.Controllers
 //            [HttpPost]
 //            public IActionResult CreateAppointment(CreatePatient model)
 //            {
-//                model.Doctors = clinicDbContext.Doctors.ToList();
-//                model.AvailableSlots = GetAvailableSlots(model.DoctorId, model.AppointmentDate);
-
-//                // Model validation
 //                if (!ModelState.IsValid)
+//                {
+//                    model.Doctors = clinicDbContext.Doctors.ToList();
 //                    return View(model);
+//                }
 
-//                // Unique checks
-//                if (clinicDbContext.Patients.Any(p => p.Email == model.Email))
-//                    ModelState.AddModelError("Email", "Email already exists");
-
-//                if (clinicDbContext.Patients.Any(p => p.PhoneNumber == model.Phone))
-//                    ModelState.AddModelError("Phone", "Phone already exists");
-
-//                if (model.SelectedTime == null)
+//                if (!TimeSpan.TryParse(model.SelectedTime, out var startTime))
+//                {
 //                    ModelState.AddModelError("SelectedTime", "Please select a valid time slot");
-
-//                if (model.AppointmentDate.DayOfWeek == DayOfWeek.Friday)
-//                    ModelState.AddModelError("AppointmentDate", "Doctor is off on Friday");
-
-//                if (!ModelState.IsValid)
+//                    model.Doctors = clinicDbContext.Doctors.ToList();
 //                    return View(model);
-
-//                // Address
-//                var address = clinicDbContext.Addresses.FirstOrDefault(a =>
-//                    a.BuildingNumber == model.BuildingNumber &&
-//                    a.Street == model.Street &&
-//                    a.City == model.City &&
-//                    a.FloorNumber == model.FloorNumber);
-
-//                if (address == null)
-//                {
-//                    address = new Address
-//                    {
-//                        BuildingNumber = model.BuildingNumber,
-//                        Street = model.Street,
-//                        City = model.City,
-//                        FloorNumber = model.FloorNumber
-//                    };
-//                    clinicDbContext.Addresses.Add(address);
-//                    clinicDbContext.SaveChanges();
 //                }
 
-//                // Patient
-//                var patient = clinicDbContext.Patients.FirstOrDefault(p => p.Email == model.Email);
-//                if (patient == null)
-//                {
-//                    patient = new Patient
-//                    {
-//                        Name = model.Name,
-//                        DateOfBirth = model.DateOfBirth,
-//                        PhoneNumber = model.Phone,
-//                        Email = model.Email,
-//                        Gender = model.Gender,
-//                        AddressId = address.Id
-//                    };
-//                    clinicDbContext.Patients.Add(patient);
-//                    clinicDbContext.SaveChanges();
-//                }
-
-//                // Doctor
 //                var doctor = clinicDbContext.Doctors.FirstOrDefault(d => d.Id == model.DoctorId);
 //                if (doctor == null)
 //                {
-//                    ModelState.AddModelError("", "Doctor not found.");
+//                    ModelState.AddModelError("DoctorId", "Invalid Doctor");
+//                    model.Doctors = clinicDbContext.Doctors.ToList();
 //                    return View(model);
 //                }
 
-//                // Secretary (أول واحد موجود)
-//                var secretary = clinicDbContext.Secretaries.FirstOrDefault();
-//                if (secretary == null)
+//                bool booked = clinicDbContext.Appointments.Any(a =>
+//                    a.DoctorId == model.DoctorId &&
+//                    a.AppointmentDate == model.AppointmentDate.Date &&
+//                    a.StartTime == startTime);
+
+//                if (booked)
 //                {
-//                    ModelState.AddModelError("", "No secretary found in system.");
+//                    ModelState.AddModelError("SelectedTime", "This time is already booked");
+//                    model.Doctors = clinicDbContext.Doctors.ToList();
 //                    return View(model);
 //                }
 
-//                // Appointment
+//                var secretary = clinicDbContext.Secretaries.First();
+
 //                var appointment = new Appointment
 //                {
 //                    DoctorId = doctor.Id,
-//                    PatientId = patient.Id,
+//                    PatientId = 1,
 //                    SecretaryId = secretary.Id,
-//                    AppointmentDate = model.AppointmentDate,
-//                    StartTime = model.SelectedTime.Value,
-//                    EndTime = model.SelectedTime.Value.Add(TimeSpan.FromMinutes(30))
+//                    AppointmentDate = model.AppointmentDate.Date,
+//                    StartTime = startTime,
+//                    EndTime = startTime.Add(TimeSpan.FromMinutes(30))
 //                };
 
 //                clinicDbContext.Appointments.Add(appointment);
 //                clinicDbContext.SaveChanges();
 
-//                TempData["SuccessMessage"] = "Appointment created successfully!";
-//                return RedirectToAction("CreateAppointment");
+//                TempData["SuccessMessage"] = "Appointment created successfully";
+//                return RedirectToAction(nameof(CreateAppointment));
 //            }
 
-//            // AJAX: Get available time slots
+//            // AJAX: Get Available Slots
 //            [HttpGet]
 //            public IActionResult GetAvailableSlots(int doctorId, string date)
 //            {
-//                if (!DateTime.TryParse(date, out var appointmentDate))
-//                    return Json(new List<string>());
-
-//                var slots = GetAvailableSlots(doctorId, appointmentDate);
-//                return Json(slots.Select(s => s.ToString(@"hh\:mm")));
-//            }
-
-//            // Helper: Generate available slots
-//            private List<TimeSpan> GetAvailableSlots(int doctorId, DateTime date)
-//            {
-//                var slots = new List<TimeSpan>();
-
-//                if (date.DayOfWeek == DayOfWeek.Friday) return slots; // Doctor off
-
-//                var start = new TimeSpan(16, 0, 0);
-//                var end = new TimeSpan(20, 0, 0);
-//                for (var t = start; t < end; t = t.Add(TimeSpan.FromMinutes(30)))
+//                if (!DateTime.TryParse(date, out var selectedDate))
 //                {
-//                    bool booked = clinicDbContext.Appointments
-//                        .Any(a => a.DoctorId == doctorId && a.AppointmentDate == date && a.StartTime == t);
-//                    if (!booked) slots.Add(t);
+//                    return Json(new { isWorking = false, slots = new List<string>(), message = "Invalid Date" });
 //                }
-//                return slots;
-//            }
 
-//            // Remote Validation
-//            [AcceptVerbs("GET", "POST")]
-//            public IActionResult IsEmailUnique(string email)
-//            {
-//                return Json(!clinicDbContext.Patients.Any(p => p.Email == email));
-//            }
+//                var schedule = clinicDbContext.Schedules
+//                    .FirstOrDefault(s => s.DoctorId == doctorId &&
+//                                         s.DayOfWeek.Equals(selectedDate.DayOfWeek.ToString(), StringComparison.OrdinalIgnoreCase) &&
+//                                         s.IsWorking);
 
-//            [AcceptVerbs("GET", "POST")]
-//            public IActionResult IsPhoneUnique(string phone)
-//            {
-//                return Json(!clinicDbContext.Patients.Any(p => p.PhoneNumber == phone));
+//                if (schedule == null)
+//                    return Json(new { isWorking = false, slots = new List<string>(), message = "Doctor is off on this day" });
+
+//                var bookedSlots = clinicDbContext.Appointments
+//                    .Where(a => a.DoctorId == doctorId && a.AppointmentDate == selectedDate.Date)
+//                    .Select(a => a.StartTime)
+//                    .ToList();
+
+//                var slots = new List<string>();
+//                for (var t = schedule.StartTime; t < schedule.EndTime; t = t.Add(TimeSpan.FromMinutes(30)))
+//                {
+//                    if (!bookedSlots.Contains(t))
+//                        slots.Add(t.ToString(@"hh\:mm"));
+//                }
+
+//                return Json(new { isWorking = true, slots = slots, message = "" });
 //            }
 //        }
 //    }
 //}
-
-
-
-
-
-
-
-
-
-
-
-//            public IActionResult IsEmailUnique(string email)
-//            {
-//                bool exists = clinicDbContext.Patients.Any(p => p.Email == email);
-//                return Json(!exists);
-//            }
-
-//            public IActionResult IsPhoneUnique(string phone)
-//            {
-//                bool exists = clinicDbContext.Patients.Any(p => p.PhoneNumber == phone);
-//                return Json(!exists);
-//            }
-
-//            // GET: Create Appointment
-//            [HttpGet]
-//            public IActionResult CreateAppointment()
-//            {
-//                var model = new CreatePatient
-//                {
-//                    Doctors = clinicDbContext.Doctors.ToList()
-//                };
-//                return View(model);
-//            }
-
-//            // POST: Create Appointment
-//            [HttpPost]
-//            public IActionResult CreateAppointment(CreatePatient model)
-//            {
-//                if (!ModelState.IsValid)
-//                {
-//                    model.Doctors = clinicDbContext.Doctors.ToList();
-//                    model.AvailableSlots = GetAvailableSlots(model.DoctorId, model.AppointmentDate);
-//                    return View(model);
-//                }
-
-//                // Unique Checks
-//                if (clinicDbContext.Patients.Any(p => p.Email == model.Email))
-//                {
-//                    ModelState.AddModelError("Email", "Email already exists");
-//                }
-//                if (clinicDbContext.Patients.Any(p => p.PhoneNumber == model.Phone))
-//                {
-//                    ModelState.AddModelError("Phone", "Phone already exists");
-//                }
-//                if (!ModelState.IsValid)
-//                {
-//                    model.Doctors = clinicDbContext.Doctors.ToList();
-//                    model.AvailableSlots = GetAvailableSlots(model.DoctorId, model.AppointmentDate);
-//                    return View(model);
-//                }
-
-//                // Address
-//                var address = clinicDbContext.Addresses.FirstOrDefault(a =>
-//                    a.BuildingNumber == model.BuildingNumber &&
-//                    a.Street == model.Street &&
-//                    a.City == model.City &&
-//                    a.FloorNumber == model.FloorNumber);
-
-//                if (address == null)
-//                {
-//                    address = new Address
-//                    {
-//                        BuildingNumber = model.BuildingNumber,
-//                        Street = model.Street,
-//                        City = model.City,
-//                        FloorNumber = model.FloorNumber
-//                    };
-//                    clinicDbContext.Addresses.Add(address);
-//                    clinicDbContext.SaveChanges();
-//                }
-
-//                // Patient
-//                var patient = new Patient
-//                {
-//                    Name = model.Name,
-//                    DateOfBirth = model.DateOfBirth,
-//                    PhoneNumber = model.Phone,
-//                    Email = model.Email,
-//                    Gender = model.Gender,
-//                    AddressId = address.Id
-//                };
-//                clinicDbContext.Patients.Add(patient);
-//                clinicDbContext.SaveChanges();
-
-//                // Doctor
-//                var doctor = clinicDbContext.Doctors.Include(d => d.schedules)
-//                    .FirstOrDefault(d => d.Id == model.DoctorId);
-
-//                if (doctor == null || model.AppointmentDate.DayOfWeek == DayOfWeek.Friday || model.SelectedTime == null)
-//                {
-//                    ModelState.AddModelError("", "Invalid Doctor/Date/Time selection");
-//                    model.Doctors = clinicDbContext.Doctors.ToList();
-//                    model.AvailableSlots = GetAvailableSlots(model.DoctorId, model.AppointmentDate);
-//                    return View(model);
-//                }
-
-//                // Secretary (أول واحد موجود)
-//                var secretary = clinicDbContext.Secretaries.AsNoTracking().FirstOrDefault();
-//                if (secretary == null)
-//                {
-//                    ModelState.AddModelError("", "No secretary found in system.");
-//                    return View(model);
-//                }
-
-//                // Appointment
-//                var appointment = new Appointment
-//                {
-//                    DoctorId = doctor.Id,
-//                    PatientId = patient.Id,
-//                    SecretaryId = secretary.Id,
-//                    AppointmentDate = model.AppointmentDate,
-//                    StartTime = model.SelectedTime.Value,
-//                    EndTime = model.SelectedTime.Value.Add(TimeSpan.FromMinutes(30))
-//                };
-
-//                clinicDbContext.Appointments.Add(appointment);
-//                clinicDbContext.SaveChanges();
-
-//                TempData["Success"] = "Appointment created successfully!";
-//                return RedirectToAction("CreateAppointment");
-
-//            }
-
-//            // AJAX: Get available time slots
-//            [HttpGet]
-//            public IActionResult GetAvailableSlots(int doctorId, string date)
-//            {
-//                if (!DateTime.TryParse(date, out var appointmentDate))
-//                    return Json(new List<string>());
-
-//                var slots = GetAvailableSlots(doctorId, appointmentDate);
-//                return Json(slots.Select(s => s.ToString(@"hh\:mm")));
-//            }
-
-//            // Helper method to get slots
-//            private List<TimeSpan> GetAvailableSlots(int doctorId, DateTime date)
-//            {
-//                var slots = new List<TimeSpan>();
-
-//                if (date.DayOfWeek == DayOfWeek.Friday) return slots; // Doctor off
-
-//                // Doctor working 16:00 - 20:00
-//                var start = new TimeSpan(16, 0, 0);
-//                var end = new TimeSpan(20, 0, 0);
-//                for (var t = start; t < end; t = t.Add(TimeSpan.FromMinutes(30)))
-//                {
-//                    // Check if already booked
-//                    bool booked = clinicDbContext.Appointments
-//                        .Any(a => a.DoctorId == doctorId && a.AppointmentDate == date && a.StartTime == t);
-//                    if (!booked) slots.Add(t);
-//                }
-
-//                return slots;
-
-//            }
-//        }
-//    }
-//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

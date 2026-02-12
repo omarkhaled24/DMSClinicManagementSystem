@@ -1,4 +1,4 @@
-﻿@model ClinicManagementBLL.ViewModels.PatientViewModel.CreatePatient
+﻿@* @model ClinicManagementBLL.ViewModels.AppointmentViewModels.AppointmentDetailsViewModel
 
 @{
     ViewData["Title"] = "Create Appointment";
@@ -12,86 +12,10 @@
 
     <form asp-action="CreateAppointment" method="post">
 
-        <!-- ================= Patient Info ================= -->
-        <h5 class="fw-bold">Patient Information</h5>
-        <hr />
-
         <div class="row g-3">
             <div class="col-md-6">
-                <label asp-for="Name"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6">
-                <label asp-for="Email"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6">
-                <label asp-for="Phone"></label>
-                <input asp-for="Phone" class="form-control" />
-                <span asp-validation-for="Phone" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6">
-                <label asp-for="DateOfBirth"></label>
-                <input asp-for="DateOfBirth" type="date" class="form-control" />
-                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6">
-                <label asp-for="Gender"></label>
-                <select asp-for="Gender"
-                        class="form-control"
-                        asp-items="Html.GetEnumSelectList<ClinicManagemnetDAL.Models.Enums.Gender>()">
-                    <option value="">-- Select Gender --</option>
-                </select>
-                <span asp-validation-for="Gender" class="text-danger"></span>
-            </div>
-        </div>
-
-        <!-- ================= Address ================= -->
-        <h5 class="fw-bold mt-4">Address</h5>
-        <hr />
-
-        <div class="row g-3">
-            <div class="col-md-3">
-                <label asp-for="BuildingNumber"></label>
-                <input asp-for="BuildingNumber" class="form-control" />
-                <span asp-validation-for="BuildingNumber" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-3">
-                <label asp-for="FloorNumber"></label>
-                <input asp-for="FloorNumber" class="form-control" />
-                <span asp-validation-for="FloorNumber" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-3">
-                <label asp-for="Street"></label>
-                <input asp-for="Street" class="form-control" />
-                <span asp-validation-for="Street" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-3">
-                <label asp-for="City"></label>
-                <input asp-for="City" class="form-control" />
-                <span asp-validation-for="City" class="text-danger"></span>
-            </div>
-        </div>
-
-        <!-- ================= Appointment ================= -->
-        <h5 class="fw-bold mt-4">Appointment Information</h5>
-        <hr />
-
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label asp-for="DoctorId"></label>
-                <select asp-for="DoctorId"
-                        id="DoctorId"
-                        class="form-control"
+                <label asp-for="DoctorId" class="form-label"></label>
+                <select asp-for="DoctorId" id="DoctorId" class="form-control"
                         asp-items="@(new SelectList(Model.Doctors, "Id", "Name"))">
                     <option value="">-- Select Doctor --</option>
                 </select>
@@ -99,19 +23,15 @@
             </div>
 
             <div class="col-md-6">
-                <label asp-for="AppointmentDate"></label>
-                <input asp-for="AppointmentDate"
-                       id="AppointmentDate"
-                       type="date"
-                       class="form-control" />
+                <label asp-for="AppointmentDate" class="form-label"></label>
+                <input asp-for="AppointmentDate" type="date" id="AppointmentDate" class="form-control" />
                 <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                <div id="doctorStatusMessage" class="text-danger mt-2"></div>
             </div>
 
             <div class="col-md-6 mt-2">
-                <label asp-for="SelectedTime"></label>
-                <select asp-for="SelectedTime"
-                        id="SelectedTime"
-                        class="form-control">
+                <label asp-for="SelectedTime" class="form-label"></label>
+                <select asp-for="SelectedTime" id="SelectedTime" class="form-control">
                     <option value="">-- Select Time Slot --</option>
                 </select>
                 <span asp-validation-for="SelectedTime" class="text-danger"></span>
@@ -119,44 +39,41 @@
         </div>
 
         <div class="text-end mt-4">
-            <button type="submit" class="btn btn-success">
-                Save Appointment
-            </button>
+            <button type="submit" class="btn btn-success">Save Appointment</button>
         </div>
-
     </form>
 </div>
 
 @section Scripts {
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
-
     <script>
-        $(function () {
-
+        $(document).ready(function () {
             function loadSlots() {
                 var doctorId = $("#DoctorId").val();
                 var date = $("#AppointmentDate").val();
-
                 if (!doctorId || !date) return;
 
-                $.getJSON('@Url.Action("GetAvailableSlots", "Secretary")',
-                    { doctorId: doctorId, date: date },
-                    function (data) {
+                $.getJSON('@Url.Action("GetAvailableSlots", "Secretary")', { doctorId: doctorId, date: date }, function (response) {
+                    var $slot = $("#SelectedTime");
+                    var $message = $("#doctorStatusMessage");
 
-                        var $slot = $("#SelectedTime");
-                        $slot.empty();
-                        $slot.append('<option value="">-- Select Time Slot --</option>');
+                    $slot.empty();
+                    $slot.append('<option value="">-- Select Time Slot --</option>');
 
-                        $.each(data, function (i, time) {
-                            $slot.append(`<option value="${time}">${time}</option>`);
-                        });
+                    if (!response.isWorking) {
+                        $message.text(response.message);
+                        return;
+                    }
+
+                    $message.text("");
+                    $.each(response.slots, function (i, time) {
+                        $slot.append('<option value="' + time + '">' + time + '</option>');
                     });
+                });
             }
 
             $("#DoctorId, #AppointmentDate").change(loadSlots);
         });
     </script>
 }
+ *@
