@@ -1,5 +1,4 @@
-using ClinicManagementBLL.Services.Classes;
-using ClinicManagementBLL.Services.Interface;
+
 using ClinicManagemnetDAL.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +16,7 @@ namespace DMSClinicManagementBL
             {
                 Options.UseSqlServer(connectionString: builder.Configuration.GetConnectionString(name: "DefaultConnection"));
             });
-            builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+            
 
             var app = builder.Build();
 

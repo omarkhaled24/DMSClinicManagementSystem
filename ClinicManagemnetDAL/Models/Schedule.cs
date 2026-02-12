@@ -10,7 +10,7 @@ namespace ClinicManagemnetDAL.Models
     public class Schedule
     {
         public int Id { get; set; }
-        public DayOfWeek DayOfWeek { get; set; }
+        public string DayOfWeek { get; set; } = null!;
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
         public bool IsWorking { get; set; }
