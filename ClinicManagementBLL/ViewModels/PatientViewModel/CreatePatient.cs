@@ -21,13 +21,14 @@ namespace ClinicManagementBLL.ViewModels.PatientViewModel
         public string Name { get; set; } = null!;
 
         [Required, EmailAddress]
-        //[Remote("IsEmailUnique", "Secretary", ErrorMessage = "Email already exists")]
-        [StringLength(20, MinimumLength = 5, ErrorMessage = "Email must be between 5 and 20 characters")]
+        [Remote("IsEmailUnique", "Secretary", ErrorMessage = "Email already exists")]
+        [StringLength(50, MinimumLength = 5, ErrorMessage = "Email must be between 5 and 50 characters")]
         public string Email { get; set; } = null!;
 
         [Required]
         [Phone(ErrorMessage = "Invalid Phone Format")]
         [RegularExpression(@"^(010|011|012|015)\d{8}$", ErrorMessage = "Phone must be valid Egyptian number")]
+        [Remote("IsPhoneUnique", "Secretary", ErrorMessage = "Phone already exists")]
         public string Phone { get; set; } = null!;
 
         [Required]

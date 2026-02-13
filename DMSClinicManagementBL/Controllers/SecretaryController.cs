@@ -46,6 +46,30 @@ namespace DMSClinicManagementBL.Controllers
             }
 
             // ================== POST ==================
+            // Rmote Validation Email BY Chat Gpt
+            [AcceptVerbs("GET", "POST")]
+            public IActionResult IsEmailUnique(string Email)
+            {
+                var exists = clinicDbContext.Patients
+                    .Any(p => p.Email == Email);
+
+                if (exists)
+                    return Json("Email already exists");
+
+                return Json(true);
+            }
+
+            // Rmote Validation Phone BY Chat Gpt
+            [AcceptVerbs("GET", "POST")]
+            public IActionResult IsPhoneUnique(string Phone)
+            {
+                var exists = clinicDbContext.Patients.Any(p => p.PhoneNumber == Phone);
+                if (exists)
+                    return Json($"Phone number {Phone} already exists");
+                return Json(true);
+            }
+
+
             [HttpPost]
             public IActionResult CreateAppointment(CreatePatient model)
             {
