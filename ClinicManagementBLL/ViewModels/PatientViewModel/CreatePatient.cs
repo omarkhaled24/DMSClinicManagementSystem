@@ -59,7 +59,8 @@ namespace ClinicManagementBLL.ViewModels.PatientViewModel
 
             [Required]
             public string SelectedTime { get; set; } = null!;
-            public List<Doctor> Doctors { get; set; } = new();
+        public int SecretaryId;
+        public List<Doctor> Doctors { get; set; } = new();
 
 
 

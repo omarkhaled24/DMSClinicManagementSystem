@@ -1,79 +1,38 @@
-﻿@* @model ClinicManagementBLL.ViewModels.AppointmentViewModels.AppointmentDetailsViewModel
+﻿@model ClinicManagemnetDAL.Models.Appointment
 
 @{
-    ViewData["Title"] = "Create Appointment";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "New Appointment Details";
 }
 
 <div class="container mt-4">
-    <h3 class="mb-4 text-primary">Create Appointment</h3>
+    <h3 class="text-primary-color mb-4">New Appointment Created</h3>
 
-    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="alert alert-success">
+        Appointment has been successfully created!
+    </div>
 
-    <form asp-action="CreateAppointment" method="post">
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Patient Name</th>
+                <th>Doctor Name</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Visit Length</th>
+                <th>Secretary</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@Model.Patient.Name</td>
+                <td>@Model.Doctor.Name</td>
+                <td>@Model.AppointmentDate.ToString("yyyy-MM-dd")</td>
+                <td>@Model.StartTime.ToString(@"hh\:mm")</td>
+                <td>@Model.VisitLength min</td>
+                <td>@Model.Secretary.Name</td>
+            </tr>
+        </tbody>
+    </table>
 
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label asp-for="DoctorId" class="form-label"></label>
-                <select asp-for="DoctorId" id="DoctorId" class="form-control"
-                        asp-items="@(new SelectList(Model.Doctors, "Id", "Name"))">
-                    <option value="">-- Select Doctor --</option>
-                </select>
-                <span asp-validation-for="DoctorId" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6">
-                <label asp-for="AppointmentDate" class="form-label"></label>
-                <input asp-for="AppointmentDate" type="date" id="AppointmentDate" class="form-control" />
-                <span asp-validation-for="AppointmentDate" class="text-danger"></span>
-                <div id="doctorStatusMessage" class="text-danger mt-2"></div>
-            </div>
-
-            <div class="col-md-6 mt-2">
-                <label asp-for="SelectedTime" class="form-label"></label>
-                <select asp-for="SelectedTime" id="SelectedTime" class="form-control">
-                    <option value="">-- Select Time Slot --</option>
-                </select>
-                <span asp-validation-for="SelectedTime" class="text-danger"></span>
-            </div>
-        </div>
-
-        <div class="text-end mt-4">
-            <button type="submit" class="btn btn-success">Save Appointment</button>
-        </div>
-    </form>
+    <a href="@Url.Action("CreateAppointment", "Secretary")" class="btn btn-primary mt-3">Add Another Appointment</a>
 </div>
-
-@section Scripts {
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            function loadSlots() {
-                var doctorId = $("#DoctorId").val();
-                var date = $("#AppointmentDate").val();
-                if (!doctorId || !date) return;
-
-                $.getJSON('@Url.Action("GetAvailableSlots", "Secretary")', { doctorId: doctorId, date: date }, function (response) {
-                    var $slot = $("#SelectedTime");
-                    var $message = $("#doctorStatusMessage");
-
-                    $slot.empty();
-                    $slot.append('<option value="">-- Select Time Slot --</option>');
-
-                    if (!response.isWorking) {
-                        $message.text(response.message);
-                        return;
-                    }
-
-                    $message.text("");
-                    $.each(response.slots, function (i, time) {
-                        $slot.append('<option value="' + time + '">' + time + '</option>');
-                    });
-                });
-            }
-
-            $("#DoctorId, #AppointmentDate").change(loadSlots);
-        });
-    </script>
-}
- *@

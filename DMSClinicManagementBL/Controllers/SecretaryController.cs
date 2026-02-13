@@ -154,9 +154,7 @@ namespace DMSClinicManagementBL.Controllers
                     model.Doctors = clinicDbContext.Doctors.ToList();
                     return View(model);
                 }
-
-                var secretary = clinicDbContext.Secretaries.First();
-
+                var secretary = clinicDbContext.Secretaries.FirstOrDefault();
                 var appointment = new Appointment
                 {
                     DoctorId = doctor.Id,
@@ -170,9 +168,17 @@ namespace DMSClinicManagementBL.Controllers
                 clinicDbContext.Appointments.Add(appointment);
                 clinicDbContext.SaveChanges();
 
-                TempData["SuccessMessage"] = "Appointment created successfully";
-                return RedirectToAction(nameof(CreateAppointment));
+                // 🔹 بعد الحفظ، نجيب الـ Appointment الجديد مع البيانات المرتبطة
+                var newAppointment = clinicDbContext.Appointments
+                    .Include(a => a.Patient)
+                    .Include(a => a.Doctor)
+                    .Include(a => a.Secretary)
+                    .FirstOrDefault(a => a.Id == appointment.Id);
+
+                // نمرره للـ View
+                return View("AppointmentDetails", newAppointment);
             }
+            
 
             // ================== AJAX ==================
             [HttpGet]
