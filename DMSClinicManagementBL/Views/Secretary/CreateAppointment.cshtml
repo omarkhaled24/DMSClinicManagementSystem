@@ -90,12 +90,12 @@
             </div>
             <div class="col-md-6">
                 <label asp-for="AppointmentDate" class="form-label"></label>
-                <input asp-for="AppointmentDate" type="date" class="form-control" />
+                <input asp-for="AppointmentDate" type="date" class="form-control" id="AppointmentDate" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                 <span asp-validation-for="AppointmentDate" class="text-danger"></span>
             </div>
             <div class="col-md-6 mt-3">
                 <label asp-for="SelectedTime" class="form-label"></label>
-                <select asp-for="SelectedTime" class="form-control">
+                <select asp-for="SelectedTime" class="form-control" id="SelectedTime">
                     <option value=""> --Select Time Slot --</option>
                 </select>
                 <span asp-validation-for="SelectedTime" class="text-danger"></span>
@@ -114,25 +114,41 @@
     <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
 
     <script>
-                $(document).ready(function () {
-                    function loadSlots() {
-                        var doctorId = $("#DoctorId").val();
-        var date = $("#AppointmentDate").val();
-        if (!doctorId || !date) return;
+                        $(document).ready(function () {
 
-                        $.getJSON('@Url.Action("GetAvailableSlots", "Secretary")', { doctorId: doctorId, date: date }, function(data) {
-            var $slot = $("#SelectedTime");
-                            $slot.empty();
-                            $slot.append($('<option>').val("").text("-- Select Time Slot --"));
-                            $.each(data, function(i, time) {
-                                $slot.append($('<option>').val(time).text(time));
-            });
-        });
-                    }
+            function loadSlots() {
+                var doctorId = $("#DoctorId").val();
+                var date = $("#AppointmentDate").val();
+                if (!doctorId || !date) return;
 
-                    $("#DoctorId, #AppointmentDate").change(loadSlots);
-                });
-    </script>
+                $.getJSON('@Url.Action("GetAvailableSlots", "Secretary")',
+                    { doctorId: doctorId, date: date },
+                    function (data) {
+
+                        var $slot = $("#SelectedTime");
+                        $slot.empty();
+                        $slot.append($('<option>').val("").text("-- Select Time Slot --"));
+
+                        $("#dateError").remove();
+
+                        if (data.isOff) {
+                            $("#AppointmentDate").after(
+                                '<span id="dateError" class="text-danger d-block">'
+                                + data.message +
+                                '</span>'
+                            );
+                            return;
                         }
 
+                        $.each(data.slots, function (i, time) {
+                            $slot.append($('<option>').val(time).text(time));
+                        });
+                    });
+            }
+
+            $("#DoctorId, #AppointmentDate").change(loadSlots);
+        });
+
+    </script>
+                        }
 
