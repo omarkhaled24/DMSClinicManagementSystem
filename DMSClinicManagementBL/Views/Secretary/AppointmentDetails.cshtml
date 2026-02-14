@@ -18,6 +18,8 @@
                 <th>Doctor Name</th>
                 <th>Date</th>
                 <th>Time</th>
+                <th>Phone</th>
+                <th>Email</th>
                 <th>Visit Length</th>
                 <th>Secretary</th>
             </tr>
@@ -28,6 +30,8 @@
                 <td>@Model.Doctor.Name</td>
                 <td>@Model.AppointmentDate.ToString("yyyy-MM-dd")</td>
                 <td>@Model.StartTime.ToString(@"hh\:mm")</td>
+                <td>@Model.Patient.PhoneNumber</td>
+                <td>@Model.Patient.Email</td>
                 <td>@Model.VisitLength min</td>
                 <td>@Model.Secretary.Name</td>
             </tr>

@@ -14,8 +14,8 @@
 
     <form asp-action="CreateAppointment" method="post">
         <div class="mb-3">
-            <h5 class="fw-bold"> Personal Information </h5>
-            <hr />
+            <h5 class="text-primary fw-bold"> Patient Information </h5>
+            <hr/>
         </div>
 
         <div class="row g-3">
@@ -34,11 +34,13 @@
                 <input asp-for="Phone" class="form-control" />
                 <span asp-validation-for="Phone" class="text-danger"></span>
             </div>
-            <div class="col-md-6">
+
+            <div class="col-12 col-md-6">
                 <label asp-for="DateOfBirth" class="form-label"></label>
-                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                <input asp-for="DateOfBirth" class="form-control" type="date" />
                 <span asp-validation-for="DateOfBirth" class="text-danger"></span>
             </div>
+
             <div class="col-md-6">
                 <label asp-for="Gender" class="form-label"></label>
                 <select asp-for="Gender" asp-items="Html.GetEnumSelectList<ClinicManagemnetDAL.Models.Enums.Gender>()" class="form-select"></select>
@@ -47,7 +49,7 @@
         </div>
 
         <div class="mb-3 mt-4">
-            <h5 class="fw-bold"> Address Information </h5>
+            <h5 class="text-primary fw-bold"> Address Information </h5>
             <hr />
         </div>
 
@@ -75,7 +77,7 @@
         </div>
 
         <div class="mb-3 mt-4">
-            <h5 class="fw-bold"> Appointment Information </h5>
+            <h5 class="text-primary fw-bold"> Appointment Information </h5>
             <hr />
         </div>
 
