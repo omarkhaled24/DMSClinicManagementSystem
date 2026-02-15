@@ -39,4 +39,11 @@
     </table>
 
     <a href="@Url.Action("CreateAppointment", "Secretary")" class="btn btn-primary mt-3">Add Another Appointment</a>
+    <a href="@Url.Action("Index", "Home")" class="btn btn-primary mt-3">Back To Home</a>
+    <a asp-controller="Secretary"
+       asp-action="EditPatient"
+       asp-route-id="@Model.Patient.Id"
+       class="btn btn-primary mt-3">
+        Edit
+    </a>
 </div>

@@ -1,0 +1,132 @@
+﻿@model ClinicManagementBLL.ViewModels.PatientViewModel.PatientEditViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+<div class="container mt-4">
+    <h3 class="mb-4">Edit Patient</h3>
+
+    <form asp-action="EditPatient" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Phone" class="form-label"></label>
+            <input asp-for="Phone" class="form-control" />
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </div>
+
+        <h5 class="mt-4">Address</h5>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label asp-for="BuildingNumber" class="form-label"></label>
+                <input asp-for="BuildingNumber" class="form-control" />
+                <span asp-validation-for="BuildingNumber" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="FloorNumber" class="form-label"></label>
+                <input asp-for="FloorNumber" class="form-control" />
+                <span asp-validation-for="FloorNumber" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="Street" class="form-label"></label>
+                <input asp-for="Street" class="form-control" />
+                <span asp-validation-for="Street" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="City" class="form-label"></label>
+                <input asp-for="City" class="form-control" />
+                <span asp-validation-for="City" class="text-danger"></span>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="DoctorId" class="form-label"></label>
+                    <select asp-for="DoctorId" class="form-control" asp-items="@(new SelectList(Model.Doctors, "Id", "Name"))">
+                        <option value="">-- Select Doctor --</option>
+                    </select>
+                    <span asp-validation-for="DoctorId" class="text-danger">
+                    </span>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label asp-for="AppointmentDate" class="form-label"></label>
+                    <input asp-for="AppointmentDate"
+                           type="date"
+                           class="form-control"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+
+                    <!-- 🔥 رسالة إجازة الدكتور -->
+                    <span id="doctorOffMessage" class="text-danger"></span>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label asp-for="SelectedTime" class="form-label">Select Time</label>
+                    <select asp-for="SelectedTime" class="form-control" id="timeSelect">
+                        <option value="">-- Select Time --</option>
+                    </select>
+                </div>
+
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+        <a asp-action="PatientDetails" asp-route-id="@Model.Id" class="btn btn-secondary mt-3">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+
+
+<script>
+
+    $("#DoctorId, #AppointmentDate").change(function () {
+
+        var doctorId = $("#DoctorId").val();
+        var date = $("#AppointmentDate").val();
+
+        $("#doctorOffMessage").text("");
+        $("#timeSelect").empty();
+
+        if (doctorId && date) {
+
+            $.get("/Secretary/GetAvailableSlots",
+                { doctorId: doctorId, date: date },
+                function (data) {
+
+                    var timeSelect = $("#timeSelect");
+
+                    if (data.isOff) {
+
+                        // 🔥 عرض رسالة تحت التاريخ
+                        $("#doctorOffMessage").text(data.message);
+
+                        return;
+                    }
+
+                    timeSelect.append('<option value="">-- Select Time --</option>');
+
+                    data.slots.forEach(function (slot) {
+                        timeSelect.append(
+                            '<option value="' + slot + '">' + slot + '</option>'
+                        );
+                    });
+                });
+        }
+    });
+
+</script>
+}
+   
+
+

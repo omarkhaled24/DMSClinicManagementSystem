@@ -21,6 +21,7 @@ using System;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Routing;
 
 namespace DMSClinicManagementBL.Controllers
 {
@@ -37,6 +38,7 @@ namespace DMSClinicManagementBL.Controllers
                 this.clinicDbContext = clinicDbContext;
             }
 
+            #region Create Appointment
             [HttpGet]
             public IActionResult CreateAppointment()
             {
@@ -218,6 +220,214 @@ namespace DMSClinicManagementBL.Controllers
                 return Json(new { isOff = false, slots = slots });
             }
 
+            #endregion
+
+            #region Get Patient Data
+            [HttpGet]
+            public IActionResult PatientsWithAppointments()
+            {
+                var data = clinicDbContext.Appointments
+                    .Include(a => a.Patient)
+                    .Include(a => a.Doctor)
+                    .OrderBy(a => a.AppointmentDate)
+                    .Select(a => new PatientAppointmentList
+                    {
+                        PatientId = a.Patient.Id,
+                        PatientName = a.Patient.Name,
+                        DoctorName = a.Doctor.Name,
+                        Phone = a.Patient.PhoneNumber,
+                        AppointmentDate = a.AppointmentDate
+                    })
+                    .ToList();
+
+                return View(data);
+            }
+            [HttpGet]
+            public IActionResult PatientDetails(int id)
+            {
+                if (id <= 0)
+                    return RedirectToAction(nameof(PatientsWithAppointments));
+
+                var appointment = clinicDbContext.Appointments
+                    .Include(a => a.Patient)
+                        .ThenInclude(p => p.Address)
+                    .Include(a => a.Doctor)
+                    .FirstOrDefault(a => a.PatientId == id);
+
+                if (appointment == null)
+                    return RedirectToAction(nameof(PatientsWithAppointments));
+
+                var model = new PatientDetailsViewModel
+                {
+                    Id = appointment.Patient.Id,  // ← مهم جدًا
+                    Name = appointment.Patient.Name,
+                    Doctor = appointment.Doctor.Name,
+                    Phone = appointment.Patient.PhoneNumber,
+                    Email = appointment.Patient.Email,
+                    BuildingNumber = appointment.Patient.Address?.BuildingNumber ?? "",
+                    FloorNumber = appointment.Patient.Address?.FloorNumber ?? "",
+                    Street = appointment.Patient.Address?.Street ?? "",
+                    City = appointment.Patient.Address?.City ?? "",
+                    Age = DateTime.Today.Year - appointment.Patient.DateOfBirth.Year -
+                          (DateTime.Today.DayOfYear < appointment.Patient.DateOfBirth.DayOfYear ? 1 : 0),
+                    AppointmentDate = appointment.AppointmentDate,
+                    StartTime = appointment.StartTime
+                };
+
+                return View(model);
+            }
+
+            //[HttpGet]
+            //public IActionResult PatientDetails(int id)
+            //{
+            //    if (id <= 0)
+            //        return RedirectToAction(nameof(PatientsWithAppointments));
+
+            //    var appointment = clinicDbContext.Appointments
+            //        .Include(a => a.Patient)
+            //            .ThenInclude(p => p.Address)
+            //        .Include(a => a.Doctor)
+            //        .FirstOrDefault(a => a.PatientId == id);
+
+            //    if (appointment == null)
+            //        return RedirectToAction(nameof(PatientsWithAppointments));
+
+            //    var model = new PatientDetailsViewModel
+            //    {
+
+            //        Name = appointment.Patient.Name,
+            //        Doctor = appointment.Doctor.Name,
+            //        Phone = appointment.Patient.PhoneNumber,
+            //        Email = appointment.Patient.Email,
+            //        BuildingNumber = appointment.Patient.Address?.BuildingNumber ?? "",
+            //        FloorNumber = appointment.Patient.Address?.FloorNumber ?? "",
+            //        Street = appointment.Patient.Address?.Street ?? "",
+            //        City = appointment.Patient.Address?.City ?? "",
+
+            //        Age = DateTime.Today.Year - appointment.Patient.DateOfBirth.Year -
+            //              (DateTime.Today.DayOfYear < appointment.Patient.DateOfBirth.DayOfYear ? 1 : 0),
+
+            //        AppointmentDate = appointment.AppointmentDate,
+            //        StartTime = appointment.StartTime
+            //    };
+
+            //    return View(model);
+            //}
+
+            #endregion
+
+            #region Edit Patient
+            [HttpGet]
+            public IActionResult EditPatient(int id)
+            {
+                var appointment = clinicDbContext.Appointments
+                    .Include(a => a.Patient)
+                    .Include(a => a.Patient.Address)
+                    .FirstOrDefault(a => a.PatientId == id);
+
+                if (appointment == null)
+                    return RedirectToAction(nameof(PatientsWithAppointments));
+
+                var model = new PatientEditViewModel
+                {
+                    Id = appointment.Patient.Id,
+                    Name = appointment.Patient.Name,
+                    Email = appointment.Patient.Email,
+                    Phone = appointment.Patient.PhoneNumber,
+                    BuildingNumber = appointment.Patient.Address?.BuildingNumber ?? "",
+                    FloorNumber = appointment.Patient.Address?.FloorNumber ?? "",
+                    Street = appointment.Patient.Address?.Street ?? "",
+                    City = appointment.Patient.Address?.City ?? "",
+
+                    DoctorId = appointment.DoctorId,
+                    Doctors = clinicDbContext.Doctors.ToList(),
+
+                    AppointmentDate = appointment.AppointmentDate,
+                    SelectedTime = appointment.StartTime.ToString(@"hh\:mm")
+                };
+
+                return View(model);
+            }
+
+            [HttpPost]
+            public IActionResult EditPatient(PatientEditViewModel model)
+            {
+                if (!ModelState.IsValid)
+                {
+                    model.Doctors = clinicDbContext.Doctors.ToList();
+                    return View(model);
+                }
+                if (model.AppointmentDate.Date < DateTime.Today)
+                {
+                    ModelState.AddModelError("AppointmentDate", "You cannot select a past date.");
+                    model.Doctors = clinicDbContext.Doctors.ToList();
+                    return View(model);
+                }
+
+                var appointment = clinicDbContext.Appointments
+                    .Include(a => a.Patient)
+                    .Include(a => a.Patient.Address)
+                    .FirstOrDefault(a => a.PatientId == model.Id);
+
+                if (appointment == null)
+                    return RedirectToAction(nameof(PatientsWithAppointments));
+
+                // تحديث بيانات المريض
+                appointment.Patient.Name = model.Name;
+                appointment.Patient.Email = model.Email;
+                appointment.Patient.PhoneNumber = model.Phone;
+
+                if (appointment.Patient.Address == null)
+                    appointment.Patient.Address = new Address();
+
+                appointment.Patient.Address.BuildingNumber = model.BuildingNumber;
+                appointment.Patient.Address.FloorNumber = model.FloorNumber;
+                appointment.Patient.Address.Street = model.Street;
+                appointment.Patient.Address.City = model.City;
+
+                // 🔥 تحديث الحجز
+                appointment.DoctorId = model.DoctorId;
+                appointment.AppointmentDate = model.AppointmentDate.Date;
+
+                if (TimeSpan.TryParse(model.SelectedTime, out var startTime))
+                {
+                    appointment.StartTime = startTime;
+                    appointment.EndTime = startTime.Add(TimeSpan.FromMinutes(30));
+                }
+
+                clinicDbContext.SaveChanges();
+
+                return RedirectToAction(nameof(PatientDetails), new { id = model.Id });
+            }
+
+            #endregion
+
+            #region Delete Patient 
+            [HttpPost]
+            public IActionResult DeletePatient(int id)
+            {
+                var patient = clinicDbContext.Patients
+                    .Include(p => p.Appointments)
+                    .FirstOrDefault(p => p.Id == id);
+
+                if (patient == null)
+                    return RedirectToAction(nameof(PatientsWithAppointments));
+
+                if (patient.Appointments.Any())
+                {
+                    clinicDbContext.Appointments.RemoveRange(patient.Appointments);
+                }
+
+                clinicDbContext.Patients.Remove(patient);
+                clinicDbContext.SaveChanges();
+
+                return RedirectToAction(nameof(PatientsWithAppointments));
+            }
+
+            #endregion
         }
+
     }
 }
+
+

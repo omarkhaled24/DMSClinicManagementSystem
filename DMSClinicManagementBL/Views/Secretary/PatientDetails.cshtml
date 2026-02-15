@@ -1,0 +1,31 @@
+﻿@model ClinicManagementBLL.ViewModels.PatientViewModel.PatientDetailsViewModel
+
+<div class="container mt-4">
+    <h3 class="mb-4">Patient Details</h3>
+
+    <div class="card p-4 shadow">
+        <p><strong>Name:</strong> @Model.Name</p>
+        <p><strong>Doctor:</strong> @Model.Doctor</p>
+        <p><strong>Phone:</strong> @Model.Phone</p>
+        <p><strong>Email:</strong> @Model.Email</p>
+        <p><strong>Building Number:</strong> @Model.BuildingNumber</p>
+        <p><strong>Floor Number:</strong> @Model.FloorNumber</p>
+        <p><strong>Street:</strong> @Model.Street</p>
+        <p><strong>City:</strong> @Model.City</p>
+        <p><strong>Age:</strong> @Model.Age</p>
+        <p><strong>Appointment Date:</strong> @Model.AppointmentDate.ToString("MM/dd/yyyy")</p>
+        <p><strong>Time:</strong> @Model.StartTime.ToString(@"hh\:mm")</p>
+
+        <a asp-action="PatientsWithAppointments" class="btn btn-secondary mt-3">
+            Back
+        </a>
+
+        <a asp-controller="Secretary"
+           asp-action="EditPatient"
+           asp-route-id="@Model.Id"
+           class="btn btn-primary mt-3">
+            Edit
+        </a>
+        
+    </div>
+</div>

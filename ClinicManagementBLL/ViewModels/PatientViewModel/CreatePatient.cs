@@ -14,7 +14,7 @@ namespace ClinicManagementBLL.ViewModels.PatientViewModel
         
     public class CreatePatient
     {
-            // ===== Address =====
+            // ===== Patient =====
             [Required]
             [StringLength(50, MinimumLength = 2)]
             [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Name can contain only letters and spaces")]
