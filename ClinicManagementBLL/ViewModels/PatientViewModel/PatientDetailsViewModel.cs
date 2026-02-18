@@ -14,12 +14,15 @@ namespace ClinicManagementBLL.ViewModels.PatientViewModel
         public string Doctor { get; set; } = null!;
         public string Phone { get; set; } = null!;
         public string Email { get; set; } = null!;
-        //public string Address { get; set; } = null!;
+        public int Age { get; set; }
+
+        // Address
         public string BuildingNumber { get; set; } = null!;
         public string FloorNumber { get; set; } = null!;
         public string Street { get; set; } = null!;
         public string City { get; set; } = null!;
-        public int Age { get; set; }
+
+        // Appointment
         public DateTime AppointmentDate { get; set; }
         public TimeSpan StartTime { get; set; }
         public string SelectedTime { get; set; } = null!;

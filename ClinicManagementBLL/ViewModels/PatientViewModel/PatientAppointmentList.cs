@@ -12,6 +12,7 @@ namespace ClinicManagementBLL.ViewModels.PatientViewModel
         public string PatientName { get; set; } = null!;
         public string DoctorName { get; set; } = null!;
         public string Phone { get; set; } = null!;
+        public string Email { get; set; } = null!;
         public DateTime AppointmentDate { get; set; }
     }
 }

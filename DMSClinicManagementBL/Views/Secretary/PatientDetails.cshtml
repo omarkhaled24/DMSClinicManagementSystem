@@ -1,31 +1,92 @@
 ﻿@model ClinicManagementBLL.ViewModels.PatientViewModel.PatientDetailsViewModel
 
-<div class="container mt-4">
-    <h3 class="mb-4">Patient Details</h3>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
 
-    <div class="card p-4 shadow">
-        <p><strong>Name:</strong> @Model.Name</p>
-        <p><strong>Doctor:</strong> @Model.Doctor</p>
-        <p><strong>Phone:</strong> @Model.Phone</p>
-        <p><strong>Email:</strong> @Model.Email</p>
-        <p><strong>Building Number:</strong> @Model.BuildingNumber</p>
-        <p><strong>Floor Number:</strong> @Model.FloorNumber</p>
-        <p><strong>Street:</strong> @Model.Street</p>
-        <p><strong>City:</strong> @Model.City</p>
-        <p><strong>Age:</strong> @Model.Age</p>
-        <p><strong>Appointment Date:</strong> @Model.AppointmentDate.ToString("MM/dd/yyyy")</p>
-        <p><strong>Time:</strong> @Model.StartTime.ToString(@"hh\:mm")</p>
+            <div class="card card-details border-0 p-2 shadow rounded-4">
 
-        <a asp-action="PatientsWithAppointments" class="btn btn-secondary mt-3">
-            Back
-        </a>
+                
 
-        <a asp-controller="Secretary"
-           asp-action="EditPatient"
-           asp-route-id="@Model.Id"
-           class="btn btn-primary mt-3">
-            Edit
-        </a>
-        
+                <div class="card-body text-center">
+
+                    <h2 class="mb-1 text-primary-color">@Model.Name</h2>
+                  
+
+                    <div class="mt-4 text-start">
+                        <div class="row g-3">
+
+                            <div class="col-12">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted d-block mb-1">Doctor</small>
+                                    <strong>@Model.Doctor</strong>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted d-block mb-1">Email</small>
+                                    <strong>@Model.Email</strong>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted d-block mb-1">Phone</small>
+                                    <strong>@Model.Phone</strong>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted d-block mb-1">Appointment Date</small>
+                                    <strong>@Model.AppointmentDate.ToString("dd/MM/yyyy")</strong>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted d-block mb-1">Time</small>
+                                    <strong>@Model.StartTime.ToString(@"hh\:mm")</strong>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted d-block mb-1">Address</small>
+                                    <strong>
+                                        @Model.BuildingNumber - @Model.FloorNumber - @Model.Street - @Model.City
+                                    </strong>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between gap-2 px-3 pb-3 mt-3">
+                    <a asp-action="PatientsWithAppointments" class="btn btn-secondary flex-fill">Back</a>
+
+                    <a asp-controller="Secretary"
+                       asp-action="EditPatient"
+                       asp-route-id="@Model.Id"
+                       class="btn btn-primary flex-fill">
+                        Edit
+                    </a>
+
+                    <form asp-action="DeletePatient"
+                          asp-route-id="@Model.Id"
+                          method="post"
+                          class="flex-fill"
+                          onsubmit="return confirm('Are you sure you want to delete this patient?');">
+                        <button type="submit" class="btn btn-danger w-100">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
     </div>
 </div>

@@ -1,27 +1,16 @@
-﻿
-using ClinicManagementBLL.ViewModels.PatientViewModel;
-using ClinicManagemnetDAL.Data.Contexts;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ClinicManagemnetDAL.Models;
-using ClinicManagemnetDAL.Data;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using ClinicManagemnetDAL.Models.Enums;
-using ClinicManagementBLL.ViewModels.AppointmentViewModels;
-using Azure;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
-using Newtonsoft.Json.Linq;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using static System.Collections.Specialized.BitVector32;
-using System.Runtime.Intrinsics.Arm;
-using System;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using ClinicManagemnetDAL.Data.Contexts;       
+using ClinicManagemnetDAL.Models;              
+using ClinicManagemnetDAL.Models.Enums;       
+using ClinicManagementBLL.ViewModels.PatientViewModel; 
+
+
 
 namespace DMSClinicManagementBL.Controllers
 {
@@ -83,7 +72,12 @@ namespace DMSClinicManagementBL.Controllers
                 if (clinicDbContext.Patients.Any(p => p.PhoneNumber == model.Phone))
                     ModelState.AddModelError("Phone", "Phone already exists");
 
-                if (model.AppointmentDate.Date < DateTime.Today)
+                if (model.DateOfBirth > DateOnly.FromDateTime(DateTime.Today))
+                {
+                    ModelState.AddModelError("DateOfBirth", "Birth date cannot be in the future.");
+                }
+
+                if (model.AppointmentDate.Value.Date < DateTime.Today)
                 {
                     ModelState.AddModelError("AppointmentDate", "Cannot book appointment in the past");
                 }
@@ -150,10 +144,11 @@ namespace DMSClinicManagementBL.Controllers
                     return View(model);
                 }
 
+                
                 // Prevent double booking
                 bool booked = clinicDbContext.Appointments.Any(a =>
                     a.DoctorId == model.DoctorId &&
-                    a.AppointmentDate == model.AppointmentDate.Date &&
+                    a.AppointmentDate == model.AppointmentDate.Value.Date &&
                     a.StartTime == startTime);
 
                 if (booked)
@@ -168,7 +163,7 @@ namespace DMSClinicManagementBL.Controllers
                     DoctorId = doctor.Id,
                     PatientId = patient.Id,
                     SecretaryId = secretary.Id,
-                    AppointmentDate = model.AppointmentDate.Date,
+                    AppointmentDate = model.AppointmentDate.Value.Date,
                     StartTime = startTime,
                     EndTime = startTime.Add(TimeSpan.FromMinutes(30))
                 };
@@ -193,6 +188,10 @@ namespace DMSClinicManagementBL.Controllers
             {
                 if (!DateTime.TryParse(date, out var day))
                     return Json(new { isOff = true, message = "Invalid Date" });
+
+                // Prevent Old Datetime In Server
+                if (day.Date < DateTime.Today)
+                    return Json(new { isOff = true, message = "Cannot select a past date" });
 
                 var dayName = day.DayOfWeek.ToString();
 
@@ -220,15 +219,32 @@ namespace DMSClinicManagementBL.Controllers
                 return Json(new { isOff = false, slots = slots });
             }
 
+
+
             #endregion
 
             #region Get Patient Data
             [HttpGet]
-            public IActionResult PatientsWithAppointments()
+            public IActionResult PatientsWithAppointments(string searchName, string dateFilter, string doctorFilter)
             {
-                var data = clinicDbContext.Appointments
+                var query = clinicDbContext.Appointments
                     .Include(a => a.Patient)
                     .Include(a => a.Doctor)
+                    .AsQueryable();
+
+                // Fliter By Name
+                if (!string.IsNullOrEmpty(searchName))
+                    query = query.Where(a => a.Patient.Name.Contains(searchName));
+
+                // Filter By Appointment Date
+                if (DateTime.TryParse(dateFilter, out var date))
+                    query = query.Where(a => a.AppointmentDate.Date == date.Date);
+
+                // Filter By Doctor
+                if (int.TryParse(doctorFilter, out var docId))
+                    query = query.Where(a => a.DoctorId == docId);
+
+                var data = query
                     .OrderBy(a => a.AppointmentDate)
                     .Select(a => new PatientAppointmentList
                     {
@@ -236,12 +252,20 @@ namespace DMSClinicManagementBL.Controllers
                         PatientName = a.Patient.Name,
                         DoctorName = a.Doctor.Name,
                         Phone = a.Patient.PhoneNumber,
+                        Email = a.Patient.Email,
                         AppointmentDate = a.AppointmentDate
-                    })
-                    .ToList();
+                    }).ToList();
+
+                ViewBag.Doctors = clinicDbContext.Doctors.ToList();
+               
+                ViewBag.SearchName = searchName;
+                ViewBag.DateFilter = dateFilter;
+                ViewBag.DoctorFilter = doctorFilter;
 
                 return View(data);
             }
+
+
             [HttpGet]
             public IActionResult PatientDetails(int id)
             {
@@ -259,7 +283,7 @@ namespace DMSClinicManagementBL.Controllers
 
                 var model = new PatientDetailsViewModel
                 {
-                    Id = appointment.Patient.Id,  // ← مهم جدًا
+                    Id = appointment.Patient.Id,  
                     Name = appointment.Patient.Name,
                     Doctor = appointment.Doctor.Name,
                     Phone = appointment.Patient.PhoneNumber,
@@ -276,44 +300,7 @@ namespace DMSClinicManagementBL.Controllers
 
                 return View(model);
             }
-
-            //[HttpGet]
-            //public IActionResult PatientDetails(int id)
-            //{
-            //    if (id <= 0)
-            //        return RedirectToAction(nameof(PatientsWithAppointments));
-
-            //    var appointment = clinicDbContext.Appointments
-            //        .Include(a => a.Patient)
-            //            .ThenInclude(p => p.Address)
-            //        .Include(a => a.Doctor)
-            //        .FirstOrDefault(a => a.PatientId == id);
-
-            //    if (appointment == null)
-            //        return RedirectToAction(nameof(PatientsWithAppointments));
-
-            //    var model = new PatientDetailsViewModel
-            //    {
-
-            //        Name = appointment.Patient.Name,
-            //        Doctor = appointment.Doctor.Name,
-            //        Phone = appointment.Patient.PhoneNumber,
-            //        Email = appointment.Patient.Email,
-            //        BuildingNumber = appointment.Patient.Address?.BuildingNumber ?? "",
-            //        FloorNumber = appointment.Patient.Address?.FloorNumber ?? "",
-            //        Street = appointment.Patient.Address?.Street ?? "",
-            //        City = appointment.Patient.Address?.City ?? "",
-
-            //        Age = DateTime.Today.Year - appointment.Patient.DateOfBirth.Year -
-            //              (DateTime.Today.DayOfYear < appointment.Patient.DateOfBirth.DayOfYear ? 1 : 0),
-
-            //        AppointmentDate = appointment.AppointmentDate,
-            //        StartTime = appointment.StartTime
-            //    };
-
-            //    return View(model);
-            //}
-
+          
             #endregion
 
             #region Edit Patient
@@ -338,10 +325,8 @@ namespace DMSClinicManagementBL.Controllers
                     FloorNumber = appointment.Patient.Address?.FloorNumber ?? "",
                     Street = appointment.Patient.Address?.Street ?? "",
                     City = appointment.Patient.Address?.City ?? "",
-
                     DoctorId = appointment.DoctorId,
                     Doctors = clinicDbContext.Doctors.ToList(),
-
                     AppointmentDate = appointment.AppointmentDate,
                     SelectedTime = appointment.StartTime.ToString(@"hh\:mm")
                 };
@@ -352,11 +337,14 @@ namespace DMSClinicManagementBL.Controllers
             [HttpPost]
             public IActionResult EditPatient(PatientEditViewModel model)
             {
+               
                 if (!ModelState.IsValid)
                 {
                     model.Doctors = clinicDbContext.Doctors.ToList();
                     return View(model);
                 }
+
+                // Prevent Chooseing Old Date
                 if (model.AppointmentDate.Date < DateTime.Today)
                 {
                     ModelState.AddModelError("AppointmentDate", "You cannot select a past date.");
@@ -364,6 +352,7 @@ namespace DMSClinicManagementBL.Controllers
                     return View(model);
                 }
 
+                // بجيب بيانات المريض حالي 
                 var appointment = clinicDbContext.Appointments
                     .Include(a => a.Patient)
                     .Include(a => a.Patient.Address)
@@ -372,7 +361,20 @@ namespace DMSClinicManagementBL.Controllers
                 if (appointment == null)
                     return RedirectToAction(nameof(PatientsWithAppointments));
 
-                // تحديث بيانات المريض
+                // Check Email & Phone
+                if (clinicDbContext.Patients.Any(p => p.Email == model.Email && p.Id != model.Id))
+                    ModelState.AddModelError("Email", "Email already exists");
+
+                if (clinicDbContext.Patients.Any(p => p.PhoneNumber == model.Phone && p.Id != model.Id))
+                    ModelState.AddModelError("Phone", "Phone already exists");
+
+                if (!ModelState.IsValid)
+                {
+                    model.Doctors = clinicDbContext.Doctors.ToList();
+                    return View(model);
+                }
+
+                // Refresh Data
                 appointment.Patient.Name = model.Name;
                 appointment.Patient.Email = model.Email;
                 appointment.Patient.PhoneNumber = model.Phone;
@@ -385,7 +387,6 @@ namespace DMSClinicManagementBL.Controllers
                 appointment.Patient.Address.Street = model.Street;
                 appointment.Patient.Address.City = model.City;
 
-                // 🔥 تحديث الحجز
                 appointment.DoctorId = model.DoctorId;
                 appointment.AppointmentDate = model.AppointmentDate.Date;
 
@@ -400,34 +401,32 @@ namespace DMSClinicManagementBL.Controllers
                 return RedirectToAction(nameof(PatientDetails), new { id = model.Id });
             }
 
-            #endregion
+            #endregion      
 
             #region Delete Patient 
             [HttpPost]
-            public IActionResult DeletePatient(int id)
-            {
-                var patient = clinicDbContext.Patients
-                    .Include(p => p.Appointments)
-                    .FirstOrDefault(p => p.Id == id);
-
-                if (patient == null)
-                    return RedirectToAction(nameof(PatientsWithAppointments));
-
-                if (patient.Appointments.Any())
+                public IActionResult DeletePatient(int id)
                 {
-                    clinicDbContext.Appointments.RemoveRange(patient.Appointments);
+                    var patient = clinicDbContext.Patients
+                        .Include(p => p.Appointments)
+                        .FirstOrDefault(p => p.Id == id);
+
+                    if (patient == null)
+                        return RedirectToAction(nameof(PatientsWithAppointments));
+
+                    if (patient.Appointments.Any())
+                    {
+                        clinicDbContext.Appointments.RemoveRange(patient.Appointments);
+                    }
+
+                    clinicDbContext.Patients.Remove(patient);
+                    clinicDbContext.SaveChanges();
+
+                    return RedirectToAction(nameof(PatientsWithAppointments));
                 }
 
-                clinicDbContext.Patients.Remove(patient);
-                clinicDbContext.SaveChanges();
-
-                return RedirectToAction(nameof(PatientsWithAppointments));
+                #endregion
             }
 
-            #endregion
         }
-
     }
-}
-
-

@@ -64,8 +64,9 @@
                            min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                     <span asp-validation-for="AppointmentDate" class="text-danger"></span>
 
-                    <!-- 🔥 رسالة إجازة الدكتور -->
+                    <!--  Doctcor DayesOff Message -->
                     <span id="doctorOffMessage" class="text-danger"></span>
+                </div>
                 </div>
 
                 <div class="col-12 col-md-6">
@@ -75,10 +76,10 @@
                     </select>
                 </div>
 
-        </div>
+            </div>
 
-        <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
-        <a asp-action="PatientDetails" asp-route-id="@Model.Id" class="btn btn-secondary mt-3">Cancel</a>
+            <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+            <a asp-action="PatientDetails" asp-route-id="@Model.Id" class="btn btn-secondary mt-3">Cancel</a>
     </form>
 </div>
 
@@ -88,45 +89,44 @@
     <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
 
 
-<script>
+    <script>
 
-    $("#DoctorId, #AppointmentDate").change(function () {
+        $("#DoctorId, #AppointmentDate").change(function () {
 
-        var doctorId = $("#DoctorId").val();
-        var date = $("#AppointmentDate").val();
+            var doctorId = $("#DoctorId").val();
+            var date = $("#AppointmentDate").val();
 
-        $("#doctorOffMessage").text("");
-        $("#timeSelect").empty();
+            $("#doctorOffMessage").text("");
+            $("#timeSelect").empty();
 
-        if (doctorId && date) {
+            if (doctorId && date) {
 
-            $.get("/Secretary/GetAvailableSlots",
-                { doctorId: doctorId, date: date },
-                function (data) {
+                $.get("/Secretary/GetAvailableSlots",
+                    { doctorId: doctorId, date: date },
+                    function (data) {
 
-                    var timeSelect = $("#timeSelect");
+                        var timeSelect = $("#timeSelect");
 
-                    if (data.isOff) {
+                        if (data.isOff) {
 
-                        // 🔥 عرض رسالة تحت التاريخ
-                        $("#doctorOffMessage").text(data.message);
+                            // Show Message Under Date Filed
+                            $("#doctorOffMessage").text(data.message);
 
-                        return;
-                    }
+                            return;
+                        }
 
-                    timeSelect.append('<option value="">-- Select Time --</option>');
+                        timeSelect.append('<option value="">-- Select Time --</option>');
 
-                    data.slots.forEach(function (slot) {
-                        timeSelect.append(
-                            '<option value="' + slot + '">' + slot + '</option>'
-                        );
+                        data.slots.forEach(function (slot) {
+                            timeSelect.append(
+                                '<option value="' + slot + '">' + slot + '</option>'
+                            );
+                        });
                     });
-                });
-        }
-    });
+            }
+        });
 
-</script>
+    </script>
 }
-   
 
 
