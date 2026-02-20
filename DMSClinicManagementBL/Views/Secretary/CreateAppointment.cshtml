@@ -37,8 +37,8 @@
 
             <div class="col-12 col-md-6">
                 <label asp-for="DateOfBirth" class="form-label"></label>
-                <input asp-for="DateOfBirth" class="form-control" type="date" max="@DateTime.Today.ToString("yyyy-MM-dd")"/>
-                <span asp-validation-for="DateOfBirth" class="text-danger" ></span>
+                <input asp-for="DateOfBirth" class="form-control" type="date" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
             </div>
 
             <!-- Gender -->
@@ -115,7 +115,7 @@
         <div class="mt-5 d-flex justify-content-between align-items-center">
 
             <!-- Button -->
-           
+
             <a asp-controller="Home"
                asp-action="Index"
                class="btn btn-primary mt-3">
@@ -163,7 +163,7 @@
                 if (!doctorId || !date)
                     return;
 
-                // Prevent Old Date 
+                // Prevent Old Date
                 var selectedDate = new Date(date);
                 var today = new Date();
                 today.setHours(0, 0, 0, 0);
@@ -177,10 +177,10 @@
                     );
 
                     $("#saveBtn").prop("disabled", true);
-                    return; 
+                    return;
                 }
 
-                // If Date Is Correct Continue 
+                // If Date Is Correct Continue
                 $.getJSON('@Url.Action("GetAvailableSlots", "Secretary")',
                     { doctorId: doctorId, date: date },
                     function (data) {
