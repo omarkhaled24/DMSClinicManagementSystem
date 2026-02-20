@@ -37,7 +37,7 @@ namespace DMSClinicManagementBL.Controllers
                 });
             }
 
-            // ================== POST ==================
+            // POST 
             // Rmote Validation Email 
             [AcceptVerbs("GET", "POST")]
             public IActionResult IsEmailUnique(string Email)
@@ -144,7 +144,7 @@ namespace DMSClinicManagementBL.Controllers
                     return View(model);
                 }
 
-                
+
                 // Prevent double booking
                 bool booked = clinicDbContext.Appointments.Any(a =>
                     a.DoctorId == model.DoctorId &&
@@ -189,16 +189,16 @@ namespace DMSClinicManagementBL.Controllers
                 if (!DateTime.TryParse(date, out var day))
                     return Json(new { isOff = true, message = "Invalid Date" });
 
-                // Prevent Old Datetime In Server
+                // Prevent past dates
                 if (day.Date < DateTime.Today)
                     return Json(new { isOff = true, message = "Cannot select a past date" });
 
-                var dayName = day.DayOfWeek.ToString();
+                var dayOfWeek = day.DayOfWeek; // DayOfWeek enum
 
                 var schedule = clinicDbContext.Schedules
-                    .FirstOrDefault(s => s.DoctorId == doctorId && s.DayOfWeek == dayName);
+                    .FirstOrDefault(s => s.DoctorId == doctorId && s.DayOfWeek == dayOfWeek && s.IsWorking);
 
-                if (schedule == null || !schedule.IsWorking)
+                if (schedule == null)
                 {
                     return Json(new { isOff = true, message = "Doctor is off on this day" });
                 }
@@ -221,51 +221,63 @@ namespace DMSClinicManagementBL.Controllers
 
 
 
+
             #endregion
 
             #region Get Patient Data
-            [HttpGet]
-            public IActionResult PatientsWithAppointments(string searchName, string dateFilter, string doctorFilter)
+            public IActionResult PatientsWithAppointments(string searchName, string dateFilter, string doctorFilter, int page = 1)
             {
+                int pageSize = 5;
+
                 var query = clinicDbContext.Appointments
                     .Include(a => a.Patient)
                     .Include(a => a.Doctor)
                     .AsQueryable();
 
-                // Fliter By Name
+                // Filter by patient name
                 if (!string.IsNullOrEmpty(searchName))
                     query = query.Where(a => a.Patient.Name.Contains(searchName));
 
-                // Filter By Appointment Date
+                // Filter by appointment date
                 if (DateTime.TryParse(dateFilter, out var date))
                     query = query.Where(a => a.AppointmentDate.Date == date.Date);
 
-                // Filter By Doctor
-                if (int.TryParse(doctorFilter, out var docId))
+                // Filter by doctor
+                if (!string.IsNullOrEmpty(doctorFilter) && int.TryParse(doctorFilter, out var docId))
                     query = query.Where(a => a.DoctorId == docId);
 
-                var data = query
-                    .OrderBy(a => a.AppointmentDate)
-                    .Select(a => new PatientAppointmentList
-                    {
-                        PatientId = a.Patient.Id,
-                        PatientName = a.Patient.Name,
-                        DoctorName = a.Doctor.Name,
-                        Phone = a.Patient.PhoneNumber,
-                        Email = a.Patient.Email,
-                        AppointmentDate = a.AppointmentDate
-                    }).ToList();
+                // Pagination
+                int totalItems = query.Count();
+                int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
-                ViewBag.Doctors = clinicDbContext.Doctors.ToList();
-               
+                var appointments = query
+                    .OrderBy(a => a.AppointmentDate)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                
+                var model = appointments.Select(a => new PatientAppointmentList
+                {
+                    PatientId = a.Patient.Id,
+                    PatientName = a.Patient.Name,
+                    DoctorName = a.Doctor.Name,
+                    Phone = a.Patient.PhoneNumber,
+                    Email = a.Patient.Email,
+                    AppointmentDate = a.AppointmentDate
+                }).ToList();
+
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = totalPages;
                 ViewBag.SearchName = searchName;
                 ViewBag.DateFilter = dateFilter;
                 ViewBag.DoctorFilter = doctorFilter;
 
-                return View(data);
+                // Doctor dropdown list
+                ViewBag.Doctors = clinicDbContext.Doctors.ToList();
+
+                return View(model);
             }
-
-
             [HttpGet]
             public IActionResult PatientDetails(int id)
             {
@@ -352,7 +364,7 @@ namespace DMSClinicManagementBL.Controllers
                     return View(model);
                 }
 
-                // بجيب بيانات المريض حالي 
+                // Getting the patient's current data
                 var appointment = clinicDbContext.Appointments
                     .Include(a => a.Patient)
                     .Include(a => a.Patient.Address)
